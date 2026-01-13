@@ -1,14 +1,22 @@
 using UnityEngine;
+using System.Collections;
 
 public class AutoRunner : MonoBehaviour
 {
-    public float speed = 5f;
+    [Header("Movement")]
+    [Tooltip("プレイヤーの横移動速度")]
+    public float moveSpeed = 5f;
+
+    [Tooltip("ジャンプの強さ")]
     public float jumpForce = 7f;
+
+    [Header("Damage")]
     public float fallY = -20f;
+    public float invincibleTime = 1.0f;
 
     private Rigidbody rb;
     private bool isGrounded;
-    private bool dead;
+    private bool isInvincible;
 
     void Start()
     {
@@ -17,28 +25,24 @@ public class AutoRunner : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (dead) return;
-
-        rb.velocity = new Vector3(speed, rb.velocity.y, 0f);
+        rb.velocity = new Vector3(moveSpeed, rb.velocity.y, 0f);
     }
 
     void Update()
     {
-        if (dead) return;
-
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.velocity = new Vector3(rb.velocity.x, jumpForce, 0f);
             isGrounded = false;
         }
 
-        if (transform.position.y < fallY)
+        if (!isInvincible && transform.position.y < fallY)
         {
-            Die();
+            TakeDamage();
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
@@ -46,19 +50,30 @@ public class AutoRunner : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    void OnTriggerEnter(Collider other)
     {
-        if (dead) return;
-
-        if (other.CompareTag("DeathZone"))
+        if (!isInvincible && other.CompareTag("DeathZone"))
         {
-            Die();
+            TakeDamage();
+        }
+
+        if (other.CompareTag("Coin"))
+        {
+            GameManager.Instance.AddCoin(1);
+            Destroy(other.gameObject);
         }
     }
 
-    void Die()
+    void TakeDamage()
     {
-        dead = true;
-        GameManager.Instance.InstantDeath();
+        isInvincible = true;
+        GameManager.Instance.Damage(1);
+        StartCoroutine(InvincibleTimer());
+    }
+
+    IEnumerator InvincibleTimer()
+    {
+        yield return new WaitForSeconds(invincibleTime);
+        isInvincible = false;
     }
 }
