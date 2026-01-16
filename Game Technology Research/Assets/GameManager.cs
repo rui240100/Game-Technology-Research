@@ -37,10 +37,15 @@ public class GameManager : MonoBehaviour
 
     void Respawn()
     {
-        var player = GameObject.FindWithTag("Player");
-        var rb = player.GetComponent<Rigidbody>();
-        rb.velocity = Vector3.zero;
+        Debug.Log("Respawn called");
+
+        Time.timeScale = 1f;
+
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
         player.transform.position = respawnPoint.position;
+
+        Rigidbody rb = player.GetComponent<Rigidbody>();
+        rb.velocity = Vector3.zero;
     }
 
     void GameOver()

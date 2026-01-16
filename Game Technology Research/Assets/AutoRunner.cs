@@ -11,7 +11,7 @@ public class AutoRunner : MonoBehaviour
     public float jumpForce = 7f;
 
     [Header("Damage")]
-    public float fallY = -20f;
+    [Tooltip("ダメージ後の無敵時間")]
     public float invincibleTime = 1.0f;
 
     private Rigidbody rb;
@@ -25,25 +25,23 @@ public class AutoRunner : MonoBehaviour
 
     void FixedUpdate()
     {
+        // 自動前進
         rb.velocity = new Vector3(moveSpeed, rb.velocity.y, 0f);
     }
 
     void Update()
     {
+        // ジャンプ
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.velocity = new Vector3(rb.velocity.x, jumpForce, 0f);
             isGrounded = false;
         }
-
-        if (!isInvincible && transform.position.y < fallY)
-        {
-            TakeDamage();
-        }
     }
 
     void OnCollisionEnter(Collision collision)
     {
+        // 地面判定
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
@@ -52,11 +50,13 @@ public class AutoRunner : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        // デスゾーンに触れたらダメージ
         if (!isInvincible && other.CompareTag("DeathZone"))
         {
             TakeDamage();
         }
 
+        // コイン取得
         if (other.CompareTag("Coin"))
         {
             GameManager.Instance.AddCoin(1);
